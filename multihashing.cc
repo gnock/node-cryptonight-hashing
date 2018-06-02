@@ -317,7 +317,7 @@ NAN_METHOD(cryptonight_heavy_async) {
     Nan::AsyncQueueWorker(new CCryptonightHeavyAsync(callback, Buffer::Data(target), Buffer::Length(target), variant));
 }
 
-class CCryptonightMasariAsync : public Nan::AsyncWorker {
+class CCryptonightFastAsync : public Nan::AsyncWorker {
 
 private:
 
@@ -329,20 +329,20 @@ private:
 
 public:
 
-    CCryptonightMasariAsync(Nan::Callback* const callback, const char* const input, const uint32_t input_len, const int variant)
+    CCryptonightFastAsync(Nan::Callback* const callback, const char* const input, const uint32_t input_len, const int variant)
             : Nan::AsyncWorker(callback), m_ctx(static_cast<cryptonight_ctx *>(_mm_malloc(sizeof(cryptonight_ctx), 16))),
               m_input(input), m_input_len(input_len), m_variant(variant) {
-        m_ctx->memory = static_cast<uint8_t *>(_mm_malloc(xmrig::CRYPTONIGHT_MASARI_MEMORY, 4096));
+        m_ctx->memory = static_cast<uint8_t *>(_mm_malloc(xmrig::CRYPTONIGHT_FAST_MEMORY, 4096));
     }
 
-    ~CCryptonightMasariAsync() {
+    ~CCryptonightFastAsync() {
         _mm_free(m_ctx->memory);
         _mm_free(m_ctx);
     }
 
     void Execute () {
         switch (m_variant) {
-            default: cryptonight_single_hash<xmrig::CRYPTONIGHT_MASARI, SOFT_AES, xmrig::VARIANT_1>(reinterpret_cast<const uint8_t*>(m_input), m_input_len, reinterpret_cast<uint8_t*>(m_output), &m_ctx);
+            default: cryptonight_single_hash<xmrig::CRYPTONIGHT_FAST, SOFT_AES, xmrig::VARIANT_1>(reinterpret_cast<const uint8_t*>(m_input), m_input_len, reinterpret_cast<uint8_t*>(m_output), &m_ctx);
         }
     }
 
@@ -357,7 +357,7 @@ public:
     }
 };
 
-NAN_METHOD(cryptonight_masari) {
+NAN_METHOD(cryptonight_fast) {
         if (info.Length() < 1) return THROW_ERROR_EXCEPTION("You must provide one argument.");
 
         Local<Object> target = info[0]->ToObject();
@@ -374,14 +374,14 @@ NAN_METHOD(cryptonight_masari) {
         init_ctx();
         switch (variant) {
             default:
-                cryptonight_single_hash<xmrig::CRYPTONIGHT_MASARI, SOFT_AES, xmrig::VARIANT_1>(reinterpret_cast<const uint8_t*>(Buffer::Data(target)), Buffer::Length(target), reinterpret_cast<uint8_t*>(output), &ctx);
+                cryptonight_single_hash<xmrig::CRYPTONIGHT_FAST, SOFT_AES, xmrig::VARIANT_1>(reinterpret_cast<const uint8_t*>(Buffer::Data(target)), Buffer::Length(target), reinterpret_cast<uint8_t*>(output), &ctx);
         }
 
         v8::Local<v8::Value> returnValue = Nan::CopyBuffer(output, 32).ToLocalChecked();
         info.GetReturnValue().Set(returnValue);
 }
 
-NAN_METHOD(cryptonight_masari_async) {
+NAN_METHOD(cryptonight_fast_async) {
         if (info.Length() < 2) return THROW_ERROR_EXCEPTION("You must provide at least two arguments.");
 
         Local<Object> target = info[0]->ToObject();
@@ -399,7 +399,7 @@ NAN_METHOD(cryptonight_masari_async) {
         }
 
         Callback *callback = new Nan::Callback(info[callback_arg_num].As<v8::Function>());
-        Nan::AsyncQueueWorker(new CCryptonightMasariAsync(callback, Buffer::Data(target), Buffer::Length(target), variant));
+        Nan::AsyncQueueWorker(new CCryptonightFastAsync(callback, Buffer::Data(target), Buffer::Length(target), variant));
 }
 
 NAN_MODULE_INIT(init) {
@@ -409,8 +409,8 @@ NAN_MODULE_INIT(init) {
     Nan::Set(target, Nan::New("cryptonight_light_async").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(cryptonight_light_async)).ToLocalChecked());
     Nan::Set(target, Nan::New("cryptonight_heavy").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(cryptonight_heavy)).ToLocalChecked());
     Nan::Set(target, Nan::New("cryptonight_heavy_async").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(cryptonight_heavy_async)).ToLocalChecked());
-    Nan::Set(target, Nan::New("cryptonight_masari").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(cryptonight_masari)).ToLocalChecked());
-    Nan::Set(target, Nan::New("cryptonight_masari_async").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(cryptonight_masari_async)).ToLocalChecked());
+    Nan::Set(target, Nan::New("cryptonight_fast").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(cryptonight_fast)).ToLocalChecked());
+    Nan::Set(target, Nan::New("cryptonight_fast_async").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(cryptonight_fast_async)).ToLocalChecked());
 }
 
 NODE_MODULE(cryptonight, init)

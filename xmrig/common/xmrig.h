@@ -34,7 +34,7 @@ enum Algo {
     CRYPTONIGHT,       /* CryptoNight (Monero) */
     CRYPTONIGHT_LITE,  /* CryptoNight-Lite (AEON) */
     CRYPTONIGHT_HEAVY,  /* CryptoNight-Heavy (SUMO) */
-    CRYPTONIGHT_MASARI  /* CryptoNight-Masari (Masari) */
+    CRYPTONIGHT_FAST  /* CryptoNight-Fast (Masari) */
 };
 
 
